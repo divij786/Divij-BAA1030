@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Global Hygiene Dashboard</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1 { text-align: center; }
+    .chart { width: 80%; height: 400px; margin: 40px auto; }
+  </style>
+</head>
+<body>
+  <h1>Global Average Hygiene Coverage Over Time</h1>
+  <div id="ts" class="chart"></div>
+  <script>
+    const num = x => +x;
+    Plotly.d3.csv(
+      "https://raw.githubusercontent.com/Divij/Divij-BAA1030/main/unicef_indicator_1.csv",
+      function(err, rows) {
+        const hygiene = rows.filter(r =>
+          r.indicator ===
+            "Proportion of health care facilities with basic hygiene services"
+        );
+        const byYear = {};
+        hygiene.forEach(r => {
+          const y = num(r.time_period);
+          (byYear[y] = byYear[y] || []).push(num(r.obs_value));
+        });
+        const years = Object.keys(byYear).map(Number).sort((a,b)=>a-b);
+        const avgs = years.map(y =>
+          byYear[y].reduce((a,b)=>a+b,0) / byYear[y].length
+        );
+        Plotly.newPlot("ts", [{
+          x: years,
+          y: avgs,
+          mode: "lines+markers",
+          marker: { size: 6 },
+          line: { width: 2 }
+        }], {
+          xaxis: { title: "Year" },
+          yaxis: { title: "Avg Hygiene (%)", range: [0,100] },
+          margin: { t:40, b:40, l:60, r:20 }
+        });
+      }
+    );
+  </script>
+</body>
+</html>
+
