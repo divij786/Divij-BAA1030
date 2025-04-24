@@ -45,6 +45,49 @@
       }
     );
   </script>
+  <h2>Top 10 Countries by Hygiene Coverage (Latest Year)</h2>
+  <div id="bar1" class="chart"></div>
+  <script>
+    const num = x => +x;
+    Plotly.d3.csv(
+      "https://raw.githubusercontent.com/divij786/Divij-BAA1030/main/unicef_indicator_1.csv",
+      function(err, rows) {
+        // 1. Filter to the hygiene indicator
+        const hyg = rows.filter(r =>
+          r.indicator ===
+            "Proportion of health care facilities with basic hygiene services"
+        );
+        // 2. Find latest year
+        const years = [...new Set(hyg.map(r => num(r.time_period)))];
+        const latest = Math.max(...years);
+        // 3. Filter to that year
+        const latestData = hyg.filter(r => num(r.time_period) === latest);
+        // 4. Map country → coverage value
+        const byCountry = {};
+        latestData.forEach(r => {
+          byCountry[r.country] = num(r.obs_value);
+        });
+        // 5. Sort descending, take top 10
+        const sorted = Object.entries(byCountry)
+                             .sort((a,b) => b[1] - a[1])
+                             .slice(0,10);
+        const countries = sorted.map(d => d[0]);
+        const values    = sorted.map(d => d[1]);
+        // 6. Plot horizontal bar
+        Plotly.newPlot("bar1", [{
+          x: values,
+          y: countries,
+          type: "bar",
+          orientation: "h",
+          marker: { color: "steelblue" }
+        }], {
+          title: `Top 10 Countries by Hygiene Coverage (${latest})`,
+          xaxis: { title: "Coverage (%)", range: [0,100] },
+          margin: { l: 150, t: 50, b: 40 }
+        });
+      }
+    );
+  </script>
 </body>
 </html>
 
